@@ -91,7 +91,7 @@ function deterministicCohort(requirement: string): CohortResponse {
     const candidateSkills = [...p.hardSkills, ...p.softSkills];
     const { score, matched, missing } = skillSimilarity(candidateSkills, prereqs);
     const readiness = Math.round(score * 100);
-    if (readiness >= 55) {
+    if (readiness >= 40) {
       candidates.push({
         id: p.id,
         name: p.name,
@@ -160,7 +160,7 @@ export async function POST(req: Request) {
       for (const p of YOUTH_PROFILES_SEED) {
         const { score, matched, missing } = skillSimilarity([...p.hardSkills, ...p.softSkills], parsed.prerequisites);
         const readiness = Math.round(score * 100);
-        if (readiness >= 55) {
+        if (readiness >= 40) {
           candidates.push({
             id: p.id, name: p.name, district: p.district, education: p.education,
             experienceYears: p.experienceYears, readinessPercent: readiness,

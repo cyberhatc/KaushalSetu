@@ -32,17 +32,49 @@ function tokenize(text: string): string[] {
     .filter((w) => w.length > 1);
 }
 
-/** Cosine similarity between two phrase bag-of-words (with partial token credit). */
+/** Concept groups: tokens in the same group share a tag, giving synonym-aware similarity. */
+const CONCEPT_GROUPS: [tag: string, words: string[]][] = [
+  ["@machine-ops", ["machine", "machines", "machinery", "operation", "operating", "operator", "operate"]],
+  ["@machining", ["lathe", "cnc", "turning", "milling", "gcode", "code"]],
+  ["@quality", ["quality", "inspection", "inspect", "qc", "checks"]],
+  ["@electrical", ["electrical", "electric", "wiring", "wire", "wires"]],
+  ["@safety", ["safety", "compliance", "5s"]],
+  ["@comm", ["english", "communication", "spoken", "hindi"]],
+  ["@measure", ["measurement", "measuring", "precision", "calipers", "micrometers"]],
+  ["@drawing", ["drawings", "drawing", "diagrams", "blueprint", "diagram"]],
+  ["@teamwork", ["team", "coordination", "collaboration", "shift"]],
+  ["@digital", ["excel", "spreadsheet", "computer", "typing"]],
+  ["@ecom", ["ecommerce", "cataloging", "catalogue", "listing", "online"]],
+  ["@solar", ["solar", "panel", "panels", "rooftop", "mounting"]],
+  ["@ev", ["ev", "charger", "charging", "battery", "batteries", "pack"]],
+  ["@leather", ["leather", "footwear", "shoe", "shoes", "bag"]],
+  ["@food", ["food", "fsms", "fssai", "dairy"]],
+  ["@kiln", ["kiln", "furnace", "terracotta"]],
+  ["@handloom", ["loom", "looms", "weaving", "weaver", "handloom", "handlooms"]],
+];
+
+/** Tokens + concept-group tags for synonym-aware cosine similarity. */
+function enrichTokens(text: string): Set<string> {
+  const toks = tokenize(text);
+  const set = new Set<string>(toks);
+  for (const [tag, words] of CONCEPT_GROUPS) {
+    if (toks.some((t) => words.includes(t))) set.add(tag);
+  }
+  return set;
+}
+
+/** Cosine similarity between two phrase bag-of-words (with synonym concepts + partial token credit). */
 export function phraseSimilarity(a: string, b: string): number {
-  const ta = new Set(tokenize(a));
-  const tb = new Set(tokenize(b));
+  const ta = enrichTokens(a);
+  const tb = enrichTokens(b);
   if (ta.size === 0 || tb.size === 0) return 0;
   let overlap = 0;
   for (const t of ta) if (tb.has(t)) overlap++;
   return overlap / Math.sqrt(ta.size * tb.size);
 }
 
-/** Candidate skill vector vs job required-skill vector -> cosine similarity 0..1. */
+/** Candidate skill vector vs job required-skill vector -> score 0..1.
+ * Full credit (1.0) for close match (>=0.45), half credit (0.5) for a near miss (>=0.28). */
 export function skillSimilarity(candidateSkills: string[], jobSkills: string[]): { score: number; matched: string[]; missing: string[] } {
   if (candidateSkills.length === 0) return { score: 0, matched: [], missing: jobSkills };
   const matched: string[] = [];
@@ -61,6 +93,9 @@ export function skillSimilarity(candidateSkills: string[], jobSkills: string[]):
     if (best >= 0.45) {
       simSum += 1;
       if (!matched.includes(bestSkill)) matched.push(bestSkill);
+    } else if (best >= 0.28) {
+      simSum += 0.5; // near miss — partially related skill
+      missing.push(js);
     } else {
       missing.push(js);
     }

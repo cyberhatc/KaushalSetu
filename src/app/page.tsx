@@ -83,7 +83,7 @@ export default function Home() {
   const missing = topMissingSkills(baseMatchesList, 4);
   const simSkills = missing.map((m) => m.skill);
 
-  const RELEVANT = 55;
+  const RELEVANT = 45;
   const baseRelevant = baseMatchesList.filter((m) => m.matchPercent >= RELEVANT);
   const newRelevant = matches.filter((m) => m.matchPercent >= RELEVANT);
   const avg = (list: JobMatch[]) =>

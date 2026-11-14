@@ -110,7 +110,11 @@ function deterministicParse(text: string): ParsedProfile {
   // Name: "Main Ramesh hoon", "My name is X", "I am X"
   let name = "Candidate";
   const m1 = text.match(/(?:main|mera naam|my name is|i am|ihm)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)/i);
-  if (m1) name = m1[1].replace(/^(hoon|hu|hai)\b/i, "").trim() || name;
+  if (m1) {
+    // strip trailing helper verbs ("Main Ramesh hoon" -> "Ramesh")
+    const cleaned = m1[1].replace(/\s+(hoon|hu|hai|haan)\b\.?$/i, "").trim();
+    if (cleaned) name = cleaned;
+  }
 
   const preferredSector = hardSkills[0] ? "Manufacturing" : "General";
 

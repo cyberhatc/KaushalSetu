@@ -62,8 +62,19 @@ export default function AudioResumeBuilder({
 
   function toggleMic() {
     // Web Speech API (Chrome) supports hi-IN; graceful fallback to text area.
-    const SR = (window as unknown as { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognition }).webkitSpeechRecognition;
+    type SpeechRecCtor = new () => {
+      lang: string;
+      interimResults: boolean;
+      onstart: (() => void) | null;
+      onend: (() => void) | null;
+      onresult: ((ev: { results: { 0: { transcript: string } }[] }) => void) | null;
+      start: () => void;
+    };
+    const w = window as unknown as {
+      SpeechRecognition?: SpeechRecCtor;
+      webkitSpeechRecognition?: SpeechRecCtor;
+    };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) {
       alert("Voice input needs Chrome. Use the demo presets or paste text instead 🙂");
       return;
@@ -74,7 +85,7 @@ export default function AudioResumeBuilder({
     rec.onstart = () => setListening(true);
     rec.onend = () => setListening(false);
     rec.onresult = (ev) => {
-      const t = Array.from(ev.results).map((r) => r[0].transcript).join(" ");
+      const t = ev.results.map((r) => r[0].transcript).join(" ");
       setTranscript((prev) => (prev ? prev + " " : "") + t);
     };
     rec.start();

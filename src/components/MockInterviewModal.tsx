@@ -9,7 +9,7 @@ export default function MockInterviewModal({
   onClose,
 }: {
   jobTitle: string;
-  onClose: () => void;
+  onClose?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);

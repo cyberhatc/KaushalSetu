@@ -87,7 +87,7 @@ export default function AdminCohortDashboard() {
               <span className="bg-indigo-100 text-indigo-800 rounded-full px-3 py-1 font-semibold">{data.detectedRole}</span>
               <span className="flex items-center gap-1 bg-slate-100 rounded-full px-3 py-1 text-slate-700"><MapPin className="h-3 w-3" /> {data.detectedDistrict}</span>
               <span className="bg-slate-100 rounded-full px-3 py-1 text-slate-700">Need: {data.requiredCount}</span>
-              <span className="bg-emerald-100 text-emerald-800 rounded-full px-3 py-1 font-semibold">Ready now (≥55%): {data.candidates.length}</span>
+              <span className="bg-emerald-100 text-emerald-800 rounded-full px-3 py-1 font-semibold">Ready now (≥40% readiness): {data.candidates.length}</span>
               <span className="text-xs text-slate-400">{data.source === "ai" ? "✨ AI-parsed" : "⚙️ Offline fallback"}</span>
             </div>
 
